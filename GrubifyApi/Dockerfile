@@ -2,8 +2,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
-# Copy csproj and restore dependencies
-COPY *.csproj ./
+# Copy project file, local packages, and NuGet config then restore
+COPY *.csproj nuget.config ./
+COPY lib/ ./lib/
 RUN dotnet restore
 
 # Copy everything else and build
