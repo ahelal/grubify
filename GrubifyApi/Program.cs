@@ -1,7 +1,11 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+    builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
 // Add services to the container.
 builder.Services.AddControllers();
