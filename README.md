@@ -17,6 +17,10 @@ A modern food delivery application built with React TypeScript frontend and .NET
 - **Infrastructure**: Azure Container Apps + Container Registry
 - **Deployment**: Azure Developer CLI (azd)
 
+## Health checks
+
+Both services expose `GET /health` and return HTTP 200 when healthy or HTTP 503 when unhealthy. Responses include uptime and memory usage relative to the runtime memory limit. The API reports no downstream services because it currently uses in-memory data; the frontend checks the API as its downstream dependency. Azure Container Apps uses these endpoints for readiness probes.
+
 ## 🚀 Complete Deployment Guide
 
 This guide shows how to deploy Grubify with **both backend versions** (v1 with memory leak, v2 with payment failures) for testing Azure SRE Agent scenarios.
@@ -108,4 +112,3 @@ Now you have:
 4. **Setup incident handler** with custom instructions for automated diagnosis and mitigation
 5. **Simulate memory leak** using the deployed application endpoints
 6. **Create incident in Service Now** to trigger SRE agent response
-

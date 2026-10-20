@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+var startedAt = Stopwatch.StartNew();
 
 // Use forwarded headers for Azure Container Apps
 app.UseForwardedHeaders();
@@ -69,5 +71,40 @@ app.UseCors("AllowReactApp");
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/health", () =>
+{
+    var memoryLimitBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+    using var process = Process.GetCurrentProcess();
+    var memoryUsedBytes = process.WorkingSet64;
+    var memoryUtilization = memoryLimitBytes > 0
+        ? (double)memoryUsedBytes / memoryLimitBytes
+        : 0;
+    var isHealthy = memoryLimitBytes > 0 && memoryUtilization < 0.9;
+    var status = isHealthy ? "Healthy" : "Unhealthy";
+
+    return Results.Json(new
+    {
+        status,
+        uptimeSeconds = (long)startedAt.Elapsed.TotalSeconds,
+        checks = new
+        {
+            memory = new
+            {
+                status,
+                usedBytes = memoryUsedBytes,
+                limitBytes = memoryLimitBytes,
+                utilizationPercent = memoryLimitBytes > 0
+                    ? Math.Round(memoryUtilization * 100, 1)
+                    : (double?)null
+            },
+            downstreamServices = new
+            {
+                status = "Healthy",
+                services = Array.Empty<string>()
+            }
+        }
+    }, statusCode: isHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+});
 
 app.Run();
