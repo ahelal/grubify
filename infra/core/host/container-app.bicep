@@ -81,6 +81,18 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             cpu: json(cpu)
             memory: memory
           }
+          probes: [
+            {
+              type: 'Readiness'
+              httpGet: {
+                path: '/health'
+                port: targetPort
+                scheme: 'HTTP'
+              }
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            }
+          ]
         }
       ]
       scale: {
