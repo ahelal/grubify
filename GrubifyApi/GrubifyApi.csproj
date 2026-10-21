@@ -13,4 +13,8 @@
     <PackageReference Include="Grubify.Coupon.Validation" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="GrubifyApi.Tests" />
+  </ItemGroup>
+
 </Project>
