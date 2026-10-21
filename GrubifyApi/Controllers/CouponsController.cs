@@ -18,6 +18,8 @@ namespace GrubifyApi.Controllers
             new CouponInfo { Code = "LOYALTY15", DiscountPercent = 15, Description = "Loyalty reward - 15% off", MinOrderAmount = 10.00m, MaxUses = 10 },
         };
 
+        private static readonly CouponValidationCache<CouponValidationResult> Validations = new(
+            AvailableCoupons.Select(c => c.Code), code => Validator.Validate(code));
         private static readonly Dictionary<string, Dictionary<string, int>> UserCouponUsage = new();
 
         [HttpGet]
@@ -46,8 +48,8 @@ namespace GrubifyApi.Controllers
             if (coupon == null)
                 return NotFound(new { error = "Invalid coupon code" });
 
-            // Validate coupon integrity before applying
-            var validation = Validator.Validate(coupon.Code);
+            // Coupon codes and validator settings are fixed for this process.
+            var validation = Validations.Get(coupon.Code);
             if (!validation.IsValid)
                 return BadRequest(new { error = validation.ErrorMessage });
 
@@ -102,7 +104,7 @@ namespace GrubifyApi.Controllers
             if (coupon == null)
                 return Ok(new { valid = false, error = "Invalid coupon code" });
 
-            var validation = Validator.Validate(coupon.Code);
+            var validation = Validations.Get(coupon.Code);
 
             return Ok(new
             {
